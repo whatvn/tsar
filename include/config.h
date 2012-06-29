@@ -64,6 +64,8 @@ struct configure
 	int	mod_num;
 	/* output file */
 	char	output_file_path[LEN_128];
+    /* traffic server socket */ 
+    char    ts_mng_socket[LEN_128]; 
 };
 
 

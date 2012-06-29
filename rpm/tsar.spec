@@ -1,5 +1,5 @@
 Name: tsar
-Version: @VERSION@
+Version: 2.2.0
 Release: 0
 Summary: Taobao System Activity Reporter
 URL: http://code.taobao.org/svn/tsar/trunk

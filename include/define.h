@@ -55,7 +55,7 @@
 #define DEFAULT_CONF_FILE_PATH		"/etc/tsar/tsar.conf"
 #define DEFAULT_NAGIOS_FILE_PATH	"/etc/tsar/nagios.conf"
 #define DEFAULT_OUTPUT_FILE_PATH	"/var/log/tsar.data" 
-#define DEFAULT_MODULE_FILE_PATH	"${exec_prefix}/lib"
+#define DEFAULT_MODULE_FILE_PATH	"/etc/tsar/lib"
 #define MIN_STRING "MIN:        "
 #define MEAN_STRING "MEAN:       "
 #define MAX_STRING "MAX:        "

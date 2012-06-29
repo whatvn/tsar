@@ -29,7 +29,7 @@ const static char *RECORDS_NAME[]= {
   "proxy.process.cache.direntries.used"
 };
 //socket patch
-const static char *sock_path = "/var/run/trafficserver/mgmtapisocket";
+//const static char *sock_path = "/var/run/trafficserver/mgmtapisocket";
 //const static char *sock_path = "/usr/local/var/trafficserver/mgmtapisocket";
 
 static char *ts_storage_usage = "    --ts_storage        trafficserver storage statistics";
@@ -67,7 +67,7 @@ void read_ts_storage_stats(struct module *mod)
   bzero(&st_ts, sizeof(st_ts));
   bzero(&un, sizeof(un));
   un.sun_family = AF_UNIX;
-  strcpy(un.sun_path, sock_path);
+  strcpy(un.sun_path, conf.ts_mng_socket);
   if (connect(fd, (struct sockaddr *)&un, sizeof(un)) < 0) {
     goto done;
   }

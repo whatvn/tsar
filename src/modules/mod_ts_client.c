@@ -22,7 +22,7 @@ const static char *RECORDS_NAME[]= {
   "proxy.process.http.total_transactions_time"
 };
 //socket patch
-const static char *sock_path = "/var/run/trafficserver/mgmtapisocket";
+//const static char *sock_path = "/var/run/trafficserver/mgmtapisocket";
 //const static char *sock_path = "/usr/local/var/trafficserver/mgmtapisocket";
 
 /*
@@ -84,7 +84,8 @@ void read_ts_stats(struct module *mod)
   bzero(&st_ts, sizeof(st_ts));
   bzero(&un, sizeof(un));
   un.sun_family = AF_UNIX;
-  strcpy(un.sun_path, sock_path);
+  //strcpy(un.sun_path, sock_path);
+  strcpy(un.sun_path, conf.ts_mng_socket); 
   if (connect(fd, (struct sockaddr *)&un, sizeof(un)) < 0) {
     goto done;
   }

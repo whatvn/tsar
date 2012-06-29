@@ -1,0 +1,322 @@
+#!/bin/sh
+2		# install - install a program, script, or datafile
+3		
+4		scriptversion=2004-09-10.20
+5		
+6		# This originates from X11R5 (mit/util/scripts/install.sh), which was
+7		# later released in X11R6 (xc/config/util/install.sh) with the
+8		# following copyright and license.
+9		#
+10		# Copyright (C) 1994 X Consortium
+11		#
+12		# Permission is hereby granted, free of charge, to any person obtaining a copy
+13		# of this software and associated documentation files (the "Software"), to
+14		# deal in the Software without restriction, including without limitation the
+15		# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+16		# sell copies of the Software, and to permit persons to whom the Software is
+17		# furnished to do so, subject to the following conditions:
+18		#
+19		# The above copyright notice and this permission notice shall be included in
+20		# all copies or substantial portions of the Software.
+21		#
+22		# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+23		# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+24		# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+25		# X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+26		# AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNEC-
+27		# TION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+28		#
+29		# Except as contained in this notice, the name of the X Consortium shall not
+30		# be used in advertising or otherwise to promote the sale, use or other deal-
+31		# ings in this Software without prior written authorization from the X Consor-
+32		# tium.
+33		#
+34		#
+35		# FSF changes to this file are in the public domain.
+36		#
+37		# Calling this script install-sh is preferred over install.sh, to prevent
+38		# `make' implicit rules from creating a file called install from it
+39		# when there is no Makefile.
+40		#
+41		# This script is compatible with the BSD install script, but was written
+42		# from scratch.  It can only install one file at a time, a restriction
+43		# shared with many OS's install programs.
+44		
+45		# set DOITPROG to echo to test this script
+46		
+47		# Don't use :- since 4.3BSD and earlier shells don't like it.
+48		doit="${DOITPROG-}"
+49		
+50		# put in absolute paths if you don't have them in your path; or use env. vars.
+51		
+52		mvprog="${MVPROG-mv}"
+53		cpprog="${CPPROG-cp}"
+54		chmodprog="${CHMODPROG-chmod}"
+55		chownprog="${CHOWNPROG-chown}"
+56		chgrpprog="${CHGRPPROG-chgrp}"
+57		stripprog="${STRIPPROG-strip}"
+58		rmprog="${RMPROG-rm}"
+59		mkdirprog="${MKDIRPROG-mkdir}"
+60		
+61		chmodcmd="$chmodprog 0755"
+62		chowncmd=
+63		chgrpcmd=
+64		stripcmd=
+65		rmcmd="$rmprog -f"
+66		mvcmd="$mvprog"
+67		src=
+68		dst=
+69		dir_arg=
+70		dstarg=
+71		no_target_directory=
+72		
+73		usage="Usage: $0 [OPTION]... [-T] SRCFILE DSTFILE
+74		   or: $0 [OPTION]... SRCFILES... DIRECTORY
+75		   or: $0 [OPTION]... -t DIRECTORY SRCFILES...
+76		   or: $0 [OPTION]... -d DIRECTORIES...
+77		
+78		In the 1st form, copy SRCFILE to DSTFILE.
+79		In the 2nd and 3rd, copy all SRCFILES to DIRECTORY.
+80		In the 4th, create DIRECTORIES.
+81		
+82		Options:
+83		-c         (ignored)
+84		-d         create directories instead of installing files.
+85		-g GROUP   $chgrpprog installed files to GROUP.
+86		-m MODE    $chmodprog installed files to MODE.
+87		-o USER    $chownprog installed files to USER.
+88		-s         $stripprog installed files.
+89		-t DIRECTORY  install into DIRECTORY.
+90		-T         report an error if DSTFILE is a directory.
+91		--help     display this help and exit.
+92		--version  display version info and exit.
+93		
+94		Environment variables override the default commands:
+95		  CHGRPPROG CHMODPROG CHOWNPROG CPPROG MKDIRPROG MVPROG RMPROG STRIPPROG
+96		"
+97		
+98		while test -n "$1"; do
+99		  case $1 in
+100		    -c) shift
+101		        continue;;
+102		
+103		    -d) dir_arg=true
+104		        shift
+105		        continue;;
+106		
+107		    -g) chgrpcmd="$chgrpprog $2"
+108		        shift
+109		        shift
+110		        continue;;
+111		
+112		    --help) echo "$usage"; exit 0;;
+113		
+114		    -m) chmodcmd="$chmodprog $2"
+115		        shift
+116		        shift
+117		        continue;;
+118		
+119		    -o) chowncmd="$chownprog $2"
+120		        shift
+121		        shift
+122		        continue;;
+123		
+124		    -s) stripcmd=$stripprog
+125		        shift
+126		        continue;;
+127		
+128		    -t) dstarg=$2
+129			shift
+130			shift
+131			continue;;
+132		
+133		    -T) no_target_directory=true
+134			shift
+135			continue;;
+136		
+137		    --version) echo "$0 $scriptversion"; exit 0;;
+138		
+139		    *)  # When -d is used, all remaining arguments are directories to create.
+140			# When -t is used, the destination is already specified.
+141			test -n "$dir_arg$dstarg" && break
+142		        # Otherwise, the last argument is the destination.  Remove it from $@.
+143			for arg
+144			do
+145		          if test -n "$dstarg"; then
+146			    # $@ is not empty: it contains at least $arg.
+147			    set fnord "$@" "$dstarg"
+148			    shift # fnord
+149			  fi
+150			  shift # arg
+151			  dstarg=$arg
+152			done
+153			break;;
+154		  esac
+155		done
+156		
+157		if test -z "$1"; then
+158		  if test -z "$dir_arg"; then
+159		    echo "$0: no input file specified." >&2
+160		    exit 1
+161		  fi
+162		  # It's OK to call `install-sh -d' without argument.
+163		  # This can happen when creating conditional directories.
+164		  exit 0
+165		fi
+166		
+167		for src
+168		do
+169		  # Protect names starting with `-'.
+170		  case $src in
+171		    -*) src=./$src ;;
+172		  esac
+173		
+174		  if test -n "$dir_arg"; then
+175		    dst=$src
+176		    src=
+177		
+178		    if test -d "$dst"; then
+179		      mkdircmd=:
+180		      chmodcmd=
+181		    else
+182		      mkdircmd=$mkdirprog
+183		    fi
+184		  else
+185		    # Waiting for this to be detected by the "$cpprog $src $dsttmp" command
+186		    # might cause directories to be created, which would be especially bad
+187		    # if $src (and thus $dsttmp) contains '*'.
+188		    if test ! -f "$src" && test ! -d "$src"; then
+189		      echo "$0: $src does not exist." >&2
+190		      exit 1
+191		    fi
+192		
+193		    if test -z "$dstarg"; then
+194		      echo "$0: no destination specified." >&2
+195		      exit 1
+196		    fi
+197		
+198		    dst=$dstarg
+199		    # Protect names starting with `-'.
+200		    case $dst in
+201		      -*) dst=./$dst ;;
+202		    esac
+203		
+204		    # If destination is a directory, append the input filename; won't work
+205		    # if double slashes aren't ignored.
+206		    if test -d "$dst"; then
+207		      if test -n "$no_target_directory"; then
+208			echo "$0: $dstarg: Is a directory" >&2
+209			exit 1
+210		      fi
+211		      dst=$dst/`basename "$src"`
+212		    fi
+213		  fi
+214		
+215		  # This sed command emulates the dirname command.
+216		  dstdir=`echo "$dst" | sed -e 's,[^/]*$,,;s,/$,,;s,^$,.,'`
+217		
+218		  # Make sure that the destination directory exists.
+219		
+220		  # Skip lots of stat calls in the usual case.
+221		  if test ! -d "$dstdir"; then
+222		    defaultIFS='
+223			 '
+224		    IFS="${IFS-$defaultIFS}"
+225		
+226		    oIFS=$IFS
+227		    # Some sh's can't handle IFS=/ for some reason.
+228		    IFS='%'
+229		    set - `echo "$dstdir" | sed -e 's@/@%@g' -e 's@^%@/@'`
+230		    IFS=$oIFS
+231		
+232		    pathcomp=
+233		
+234		    while test $# -ne 0 ; do
+235		      pathcomp=$pathcomp$1
+236		      shift
+237		      if test ! -d "$pathcomp"; then
+238		        $mkdirprog "$pathcomp"
+239			# mkdir can fail with a `File exist' error in case several
+240			# install-sh are creating the directory concurrently.  This
+241			# is OK.
+242			test -d "$pathcomp" || exit
+243		      fi
+244		      pathcomp=$pathcomp/
+245		    done
+246		  fi
+247		
+248		  if test -n "$dir_arg"; then
+249		    $doit $mkdircmd "$dst" \
+250		      && { test -z "$chowncmd" || $doit $chowncmd "$dst"; } \
+251		      && { test -z "$chgrpcmd" || $doit $chgrpcmd "$dst"; } \
+252		      && { test -z "$stripcmd" || $doit $stripcmd "$dst"; } \
+253		      && { test -z "$chmodcmd" || $doit $chmodcmd "$dst"; }
+254		
+255		  else
+256		    dstfile=`basename "$dst"`
+257		
+258		    # Make a couple of temp file names in the proper directory.
+259		    dsttmp=$dstdir/_inst.$$_
+260		    rmtmp=$dstdir/_rm.$$_
+261		
+262		    # Trap to clean up those temp files at exit.
+263		    trap 'ret=$?; rm -f "$dsttmp" "$rmtmp" && exit $ret' 0
+264		    trap '(exit $?); exit' 1 2 13 15
+265		
+266		    # Copy the file name to the temp name.
+267		    $doit $cpprog "$src" "$dsttmp" &&
+268		
+269		    # and set any options; do chmod last to preserve setuid bits.
+270		    #
+271		    # If any of these fail, we abort the whole thing.  If we want to
+272		    # ignore errors from any of these, just make sure not to ignore
+273		    # errors from the above "$doit $cpprog $src $dsttmp" command.
+274		    #
+275		    { test -z "$chowncmd" || $doit $chowncmd "$dsttmp"; } \
+276		      && { test -z "$chgrpcmd" || $doit $chgrpcmd "$dsttmp"; } \
+277		      && { test -z "$stripcmd" || $doit $stripcmd "$dsttmp"; } \
+278		      && { test -z "$chmodcmd" || $doit $chmodcmd "$dsttmp"; } &&
+279		
+280		    # Now rename the file to the real destination.
+281		    { $doit $mvcmd -f "$dsttmp" "$dstdir/$dstfile" 2>/dev/null \
+282		      || {
+283			   # The rename failed, perhaps because mv can't rename something else
+284			   # to itself, or perhaps because mv is so ancient that it does not
+285			   # support -f.
+286		
+287			   # Now remove or move aside any old file at destination location.
+288			   # We try this two ways since rm can't unlink itself on some
+289			   # systems and the destination file might be busy for other
+290			   # reasons.  In this case, the final cleanup might fail but the new
+291			   # file should still install successfully.
+292			   {
+293			     if test -f "$dstdir/$dstfile"; then
+294			       $doit $rmcmd -f "$dstdir/$dstfile" 2>/dev/null \
+295			       || $doit $mvcmd -f "$dstdir/$dstfile" "$rmtmp" 2>/dev/null \
+296			       || {
+297				 echo "$0: cannot unlink or rename $dstdir/$dstfile" >&2
+298				 (exit 1); exit
+299			       }
+300			     else
+301			       :
+302			     fi
+303			   } &&
+304		
+305			   # Now rename the file to the real destination.
+306			   $doit $mvcmd "$dsttmp" "$dstdir/$dstfile"
+307			 }
+308		    }
+309		  fi || { (exit 1); exit; }
+310		done
+311		
+312		# The final little trick to "correctly" pass the exit status to the exit trap.
+313		{
+314		  (exit 0); exit
+315		}
+316		
+317		# Local variables:
+318		# eval: (add-hook 'write-file-hooks 'time-stamp)
+319		# time-stamp-start: "scriptversion="
+320		# time-stamp-format: "%:y-%02m-%02d.%02H"
+321		# time-stamp-end: "$"
+322		# End:

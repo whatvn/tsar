@@ -1,0 +1,33 @@
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+
+AC_PREREQ(2.59)
+AC_INIT(tsar,2.2.0,kongjian@taobao.com)
+AC_CONFIG_SRCDIR([include/output_print.h])
+#AC_CONFIG_HEADER([config.h])
+#AM_INIT_AUTOMAKE(tsar,2.2.0)
+
+# Checks for programs.
+AC_PROG_CC
+AC_PROG_INSTALL
+
+# Checks for libraries.
+# FIXME: Replace `main' with a function in `-ldl':
+AC_CHECK_LIB([dl], [main])
+
+# Checks for header files.
+AC_SUBST([prefix])
+AC_SUBST([exec_prefix])
+AC_SUBST([libdir])
+
+# Checks for typedefs, structures, and compiler characteristics.
+
+# Checks for library functions.
+
+AC_CONFIG_FILES([include/define.h rpm/tsar.spec])
+AC_OUTPUT([Makefile
+		src/modules/Makefile
+		devel/Makefile
+		conf/Makefile
+		crontrib/Makefile
+		src/Makefile])

@@ -1,0 +1,53 @@
+.TH tsar -
+.SH NAME
+tsar \- Taobao System Activity Reporter
+.SH SYNOPSIS
+.B tsar 
+[options] --tsar mian function
+.PP
+tsardevel 
+[modname] --develop new mod
+.SH DESCRIPTION
+.PP
+\fBtsar\fB is a monitor tool for collect system activity status and apps.
+.PP
+tsar reads and logs messages to the log files,It support different output target 
+such as local console or remote db/nagios host.It have a plugin system 
+that is easy for collect plugin development.
+.PP
+
+.SH OPTIONS
+.TP
+.B \-c , \-\-cron
+run in cron mode, output data to file,default is /var/log/tsar.data
+.TP
+.B \-l ,\-\-live
+running print live mode which module will print
+.TP
+.B \-i , \-\-interval 
+specify intervals numbers, if not with --live,it is in minutes;if with --live, it is in seconds
+.TP
+.B \-m , \-\-merge
+merge multiply item to one
+.TP
+.B \-L , \-\-list
+list enabled modules
+.TP
+.B \-n , \-\-ndays
+show the value for the past days (default: 1)
+.TP
+.B \-h , \-\-help
+print help info
+.TP
+.SH DIAGNOSTICS
+It is expected that \fBtsar\fP will run as root
+.SH FILES
+.TP
+.I /etc/tsar/tsar.conf
+Configuration file for tsar.output mod list for differnt type
+.TP
+.I /etc/tsar/nagios.conf
+The file containing the center nagios server ip&port.and nsca config
+.SH BUGS
+.PP
+If you find any, please send email to the kongjian@taobao.com

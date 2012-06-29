@@ -38,7 +38,7 @@ const static char *RECORDS_NAME[]= {
   "proxy.process.http.transaction_counts.errors.other"//float
 };
 //socket patch
-const static char *sock_path = "/var/run/trafficserver/mgmtapisocket";
+//const static char *sock_path = "/var/run/trafficserver/mgmtapisocket";
 //const static char *sock_path = "/usr/local/var/trafficserver/mgmtapisocket";
 
 static char *ts_err_usage = "    --ts_err            trafficserver error statistics";
@@ -85,7 +85,7 @@ void read_ts_err_stats(struct module *mod)
   bzero(&st_ts, sizeof(st_ts));
   bzero(&un, sizeof(un));
   un.sun_family = AF_UNIX;
-  strcpy(un.sun_path, sock_path);
+  strcpy(un.sun_path, conf.ts_mng_socket);
   if (connect(fd, (struct sockaddr *)&un, sizeof(un)) < 0) {
     goto done;
   }

@@ -110,7 +110,9 @@ static int parse_line(char *buff)
 	else if (!strcmp(token, "output_nagios_mod"))
 		parse_add_string(conf.output_nagios_mod);
 	else if (!strcmp(token, "output_stdio_mod"))
-		parse_add_string(conf.output_stdio_mod);
+		parse_string(conf.output_stdio_mod);
+    else if (!strcmp(token, "ts_mng_socket")) 
+       	parse_string(conf.ts_mng_socket); 
 	else if (!strcmp(token, "debug_level"))
 		set_debug_level();
 	else if (!strcmp(token, "include"))

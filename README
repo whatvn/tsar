@@ -1,7 +1,7 @@
 sar - A tool to collect, report, or save system activity information.
 
 
-tsar is another version of tsar. Tsar is Taobao monitor tool for collect system activity status, and report it.
+tsar is another version of sar. Tsar is Taobao monitor tool for collect system activity status, and report it.
 It have a plugin system that is easy for collect plugin development. and may
 setup different output target such as local logfile and remote nagios host.
 
@@ -30,4 +30,4 @@ We are avtively looking for contributors so if you have any ideas, bug reports, 
 
 * License:
 
-All of these source code is license to Taobao, you must follow Taobao policy when using this software version
+All of these source code is licensed to Taobao, you must follow Taobao policy when using this software version

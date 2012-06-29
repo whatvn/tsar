@@ -27,10 +27,11 @@ const static char *RECORDS_NAME[]= {
         "proxy.node.bandwidth_hit_ratio_avg_10s"
 };
 //socket patch
-//const static char *sock_path = "/var/run/trafficserver/mgmtapisocket";
-//const static char *sock_path = "/zserver/trafficserver/var/trafficserver/mgmtapisocket";
+const static char *sock_path = "/var/run/trafficserver/mgmtapisocket";
+//const static char *sock_path = "/usr/local/var/trafficserver/mgmtapisocket";
 
 static char *ts_cache_usage = "    --ts_cache          trafficserver cache statistics";
+
 static struct mod_info ts_cache_info[] = {
   {"   hit", DETAIL_BIT, 0, STATS_NULL},
   {"ramhit", DETAIL_BIT, 0, STATS_NULL},
@@ -39,10 +40,10 @@ static struct mod_info ts_cache_info[] = {
 
 void read_ts_cache_stats(struct module *mod)
 {
-  //int fd = -1;
+  int fd = -1;
   struct sockaddr_un un;
   struct stats_ts_cache st_ts;
-  int pos, len, fd;
+  int pos;
   char buf[LINE_4096];
   if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
     goto done;
@@ -50,11 +51,8 @@ void read_ts_cache_stats(struct module *mod)
   bzero(&st_ts, sizeof(st_ts));
   bzero(&un, sizeof(un));
   un.sun_family = AF_UNIX;
-  strcpy(un.sun_path, conf.ts_mng_socket);
-  len = strlen(un.sun_path) + sizeof(un.sun_family) ; 
-  //if (connect(fd, (struct sockaddr *)&un, sizeof(un)) < 0) { 
-  if (connect(fd, (struct sockaddr *)&un, len) < 0) { 
-    printf("aaaaa");
+  strcpy(un.sun_path, sock_path);
+  if (connect(fd, (struct sockaddr *)&un, sizeof(un)) < 0) {
     goto done;
   }
 

@@ -97,12 +97,14 @@ void read_ts_storage_stats(struct module *mod)
     }
     if (0 == ret_status) {
       if (ret_type < 2) {
-	ret_val= *((long int *)&buf[8]);
-      } else if (2 == ret_type) {
-	float ret_val_float = *((float *)&buf[8]);
+	     ret_val= *((long int *)&buf[8]);
+      } 
+      else if (2 == ret_type) {
+	    float ret_val_float = *((float *)&buf[8]);
         ret_val_float *= 100;
         ret_val = (unsigned long long)ret_val_float;
-      } else {
+      } 
+      else {
         goto done;
       }
     }
